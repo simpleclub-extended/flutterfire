@@ -19,7 +19,7 @@ flutter:
 
 dependencies:
   firebase_rest_auth:
-    git: https://github.com/simpleclub/firebase_rest_auth
+    git: git@github.com:simpleclub/firebase_rest_auth.git
 
   meta: ^1.0.4
   firebase_core: ^0.4.4
