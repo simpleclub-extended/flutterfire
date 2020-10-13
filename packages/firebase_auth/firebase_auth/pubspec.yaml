@@ -18,7 +18,7 @@ flutter:
         default_package: firebase_auth_web
 
 dependencies:
-  firebase_rest_auth: ^0.2.1+2
+  firebase_rest_auth: ^0.3.0
 
   meta: ^1.0.4
   firebase_core: ^0.5.0+1
