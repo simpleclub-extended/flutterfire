@@ -9,19 +9,10 @@ import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging_platform_interface/firebase_messaging_platform_interface.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
-import 'package:firebase_core_web/firebase_core_web_interop.dart'
-    as core_interop;
-
-import 'src/interop/messaging.dart' as messaging_interop;
-import 'src/interop/notification.dart';
-import 'src/utils.dart' as utils;
 
 /// Web implementation for [FirebaseMessagingPlatform]
 /// delegates calls to messaging web plugin.
 class FirebaseMessagingWeb extends FirebaseMessagingPlatform {
-  /// Instance of Messaging from the web plugin
-  messaging_interop.Messaging _webMessaging;
-
   /// Called by PluginRegistry to register this plugin for Flutter Web
   static void registerWith(Registrar registrar) {
     FirebaseMessagingPlatform.instance = FirebaseMessagingWeb();
@@ -34,22 +25,6 @@ class FirebaseMessagingWeb extends FirebaseMessagingPlatform {
   /// Builds an instance of [FirebaseMessagingWeb] with an optional [FirebaseApp] instance
   /// If [app] is null then the created instance will use the default [FirebaseApp]
   FirebaseMessagingWeb({FirebaseApp app}) : super(appInstance: app) {
-    if (!messaging_interop.isSupported()) {
-      // The browser is not supported (Safari). Initialize a full no-op FirebaseMessagingWeb
-      return;
-    }
-
-    _webMessaging =
-        messaging_interop.getMessagingInstance(core_interop.app(app?.name));
-    if (app != null && _initialized) return;
-
-    _webMessaging.onMessage
-        .listen((messaging_interop.MessagePayload webMessagePayload) {
-      RemoteMessage remoteMessage =
-          RemoteMessage.fromMap(utils.messagePayloadToMap(webMessagePayload));
-      FirebaseMessagingPlatform.onMessage.add(remoteMessage);
-    });
-
     _initialized = true;
   }
 
@@ -87,11 +62,6 @@ class FirebaseMessagingWeb extends FirebaseMessagingPlatform {
       // no-op for unsupported browsers
       return;
     }
-    try {
-      await _webMessaging.deleteToken();
-    } catch (e) {
-      throw utils.getFirebaseException(e);
-    }
   }
 
   @override
@@ -104,11 +74,6 @@ class FirebaseMessagingWeb extends FirebaseMessagingPlatform {
     if (!_initialized) {
       // no-op for unsupported browsers
       return null;
-    }
-    try {
-      return await _webMessaging.getToken(vapidKey: vapidKey);
-    } catch (e) {
-      throw utils.getFirebaseException(e);
     }
   }
 
@@ -123,7 +88,7 @@ class FirebaseMessagingWeb extends FirebaseMessagingPlatform {
 
   @override
   Future<NotificationSettings> getNotificationSettings() async {
-    return utils.getNotificationSettings(WindowNotification.permission);
+    return null;
   }
 
   @override
@@ -135,12 +100,7 @@ class FirebaseMessagingWeb extends FirebaseMessagingPlatform {
       bool criticalAlert = false,
       bool provisional = false,
       bool sound = true}) async {
-    try {
-      String status = await WindowNotification.requestPermission();
-      return utils.getNotificationSettings(status);
-    } catch (e) {
-      throw utils.getFirebaseException(e);
-    }
+    return null;
   }
 
   @override
