@@ -2,12 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:firebase_analytics_platform_interface/firebase_analytics_platform_interface.dart';
 import 'package:firebase_analytics_platform_interface/method_channel_firebase_analytics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 void main() {
   group('$FirebaseAnalyticsPlatform', () {
@@ -28,15 +27,18 @@ void main() {
     });
 
     test('Can be mocked with `implements`', () {
-      final ImplementsFirebaseAnalyticsPlatform mock =
-          ImplementsFirebaseAnalyticsPlatform();
-      when(mock.isMock).thenReturn(true);
+      final MocksFirebaseAnalyticsPlatform mock =
+          MocksFirebaseAnalyticsPlatform();
       FirebaseAnalyticsPlatform.instance = mock;
     });
   });
 }
 
 class ImplementsFirebaseAnalyticsPlatform extends Mock
+    implements FirebaseAnalyticsPlatform {}
+
+class MocksFirebaseAnalyticsPlatform extends Mock
+    with MockPlatformInterfaceMixin
     implements FirebaseAnalyticsPlatform {}
 
 class ExtendsFirebaseAnalyticsPlatform extends FirebaseAnalyticsPlatform {}

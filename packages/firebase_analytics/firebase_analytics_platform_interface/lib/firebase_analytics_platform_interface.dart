@@ -2,11 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart=2.9
-
-import 'dart:async';
-
-import 'package:meta/meta.dart' show required, visibleForTesting;
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'method_channel_firebase_analytics.dart';
 
@@ -18,54 +14,31 @@ import 'method_channel_firebase_analytics.dart';
 /// will get the default implementation, while platform implementations that
 /// `implements` this interface will be broken by newly added
 /// [FirebaseAnalyticsPlatform] methods.
-abstract class FirebaseAnalyticsPlatform {
-  /// Only mock implementations should set this to `true`.
-  ///
-  /// Mockito mocks implement this class with `implements` which is forbidden
-  /// (see class docs). This property provides a backdoor for mocks to skip the
-  /// verification that the class isn't implemented with `implements`.
-  @visibleForTesting
-  bool get isMock => false;
+abstract class FirebaseAnalyticsPlatform extends PlatformInterface {
+  FirebaseAnalyticsPlatform() : super(token: _token);
 
-  /// The default instance of [FirebaseAnalyticsPlatform] to use.
-  ///
-  /// Platform-specific plugins should override this with their own class
-  /// that extends [FirebaseAnalyticsPlatform] when they register themselves.
-  ///
-  /// Defaults to [MethodChannelFirebaseAnalytics].
-  static FirebaseAnalyticsPlatform get instance => _instance;
+  static const Object _token = Object();
 
-  static FirebaseAnalyticsPlatform _instance = MethodChannelFirebaseAnalytics();
+  static FirebaseAnalyticsPlatform? _instance;
 
-  // TODO(amirh): Extract common platform interface logic.
-  // https://github.com/flutter/flutter/issues/43368
+  /// The current default [FirebaseAnalyticsPlatform] instance.
+  ///
+  /// It will always default to [MethodChannelFirebaseAnalytics]
+  /// if no other implementation was provided.
+  static FirebaseAnalyticsPlatform get instance {
+    return _instance ??= MethodChannelFirebaseAnalytics();
+  }
+
+  /// Sets the [FirebaseAnalyticsPlatform.instance]
   static set instance(FirebaseAnalyticsPlatform instance) {
-    if (!instance.isMock) {
-      try {
-        instance._verifyProvidesDefaultImplementations();
-        // ignore: avoid_catching_errors
-      } on NoSuchMethodError catch (_) {
-        throw AssertionError(
-          'Platform interfaces must not be implemented with `implements`',
-        );
-      }
-    }
+    PlatformInterface.verifyToken(instance, _token);
     _instance = instance;
   }
 
-  /// This method ensures that [FirebaseAnalyticsPlatform] isn't implemented with `implements`.
-  ///
-  /// See class docs for more details on why using `implements` to implement
-  /// [FirebaseAnalyticsPlatform] is forbidden.
-  ///
-  /// This private method is called by the [instance] setter, which should fail
-  /// if the provided instance is a class implemented with `implements`.
-  void _verifyProvidesDefaultImplementations() {}
-
   /// Logs the given event [name] with the given [parameters].
   Future<void> logEvent({
-    @required String name,
-    Map<String, dynamic> parameters,
+    required String name,
+    Map<String, Object>? parameters,
   }) {
     throw UnimplementedError('logEvent() is not implemented on this platform');
   }
@@ -84,8 +57,8 @@ abstract class FirebaseAnalyticsPlatform {
   /// Sets the current screen name, which specifies the current visual context
   /// in your app.
   Future<void> setCurrentScreen({
-    @required String screenName,
-    String screenClassOverride,
+    required String screenName,
+    String? screenClassOverride,
   }) {
     throw UnimplementedError(
         'setCurrentScreen() is not implemented on this platform');
@@ -93,8 +66,8 @@ abstract class FirebaseAnalyticsPlatform {
 
   /// Sets a user property to the given value.
   Future<void> setUserProperty({
-    @required String name,
-    @required String value,
+    required String name,
+    required String value,
   }) {
     throw UnimplementedError(
         'setUserProperty() is not implemented on this platform');
